@@ -13,6 +13,8 @@ var logger = new Logger({  token:'f7347545-b7ff-4682-894f-7473dac2c18c'});
 var httpServer = http.createServer(app);
 //var httpsServer = https.createServer(credentials, app);
 
+//var io = require('socket.io')(httpsServer);
+var io = require('socket.io')(httpServer);
 
 app.get('/', function(req, res){
   res.sendFile(__dirname + '/index.html');

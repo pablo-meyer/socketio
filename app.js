@@ -1,25 +1,24 @@
 var fs = require('fs');
 var app = require('express')();
-var https = require('https');
+//var https = require('https');
 var Logger = require('le_node');
-//var http = require('http');
+var http = require('http');
 
 var logger = new Logger({  token:'f7347545-b7ff-4682-894f-7473dac2c18c'});
 
-var privateKey  = fs.readFileSync(__dirname + '/cert/server-key.pem', 'utf8');
-var certificate = fs.readFileSync(__dirname + '/cert/server-cert.pem', 'utf8');
-var credentials = {key: privateKey, cert: certificate};
+//var privateKey  = fs.readFileSync(__dirname + '/cert/server-key.pem', 'utf8');
+//var certificate = fs.readFileSync(__dirname + '/cert/server-cert.pem', 'utf8');
+//var credentials = {key: privateKey, cert: certificate};
 
-//var httpServer = http.createServer(app);
-var httpsServer = https.createServer(credentials, app);
+var httpServer = http.createServer(app);
+//var httpsServer = https.createServer(credentials, app);
 
-var io = require('socket.io')(httpsServer);
 
 app.get('/', function(req, res){
   res.sendFile(__dirname + '/index.html');
 });
 
-io.set('origins','https://localhost:44320');
+io.set('origins','https://localhost');
 io.on('connection', function(socket){
   
   log('a user connected');
@@ -50,8 +49,12 @@ io.on('connection', function(socket){
 
 });
 
-httpsServer.listen(44320,function(){
-  log('listening on Https *:44320')
+//httpsServer.listen(44320,function(){
+//  log('listening on Https *:44320')
+//})
+
+httpsServer.listen(80,function(){
+  log('listening on Http *:80')
 })
 
 var log = function(message)

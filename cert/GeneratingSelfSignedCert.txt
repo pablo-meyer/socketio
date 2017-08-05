@@ -1,0 +1,53 @@
+D:\Program Files (x86)\GnuWin32\bin>openssl genrsa -out server-key.pem 1024
+Loading 'screen' into random state - done
+Generating RSA private key, 1024 bit long modulus
+...++++++
+........++++++
+e is 65537 (0x10001)
+
+D:\Program Files (x86)\GnuWin32\bin>openssl req -new -key server-key.pem -out se
+rver-csr.pem
+Unable to load config info from /usr/local/ssl/openssl.cnf
+
+D:\Program Files (x86)\GnuWin32\bin>set OPENSSL_CONF="D:\Program Files (x86)\Gnu
+Win32\share\openssl.cnf"
+
+D:\Program Files (x86)\GnuWin32\bin>openssl req -new -key server-key.pem -out se
+rver-csr.pem
+Unable to load config info from "D:\Program Files (x86)\GnuWin32\share\openssl.c
+nf"
+
+D:\Program Files (x86)\GnuWin32\bin>set OPENSSL_CONF=D:\Program Files (x86)\GnuW
+in32\share\openssl.cnf
+
+D:\Program Files (x86)\GnuWin32\bin>openssl req -new -key server-key.pem -out se
+rver-csr.pem
+Loading 'screen' into random state - done
+You are about to be asked to enter information that will be incorporated
+into your certificate request.
+What you are about to enter is what is called a Distinguished Name or a DN.
+There are quite a few fields but you can leave some blank
+For some fields there will be a default value,
+If you enter '.', the field will be left blank.
+-----
+Country Name (2 letter code) [AU]:US
+State or Province Name (full name) [Some-State]:CA
+Locality Name (eg, city) []:Los Angeles
+Organization Name (eg, company) [Internet Widgits Pty Ltd]:IE
+Organizational Unit Name (eg, section) []:
+Common Name (eg, YOUR name) []:PMEYER
+Email Address []:
+
+Please enter the following 'extra' attributes
+to be sent with your certificate request
+A challenge password []:
+An optional company name []:
+
+D:\Program Files (x86)\GnuWin32\bin>openssl x509 -req -in server-csr.pem -signke
+y server-key.pem -out server.cert.pem
+Loading 'screen' into random state - done
+Signature ok
+subject=/C=US/ST=CA/L=Los Angeles/O=IE/CN=PMEYER
+Getting Private key
+
+D:\Program Files (x86)\GnuWin32\bin>

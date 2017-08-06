@@ -1,5 +1,8 @@
 {
   "name": "socket-chat-example",
+  "engines": {
+    "node": ">=6.11.2" // intentionally so big version number
+  },
   "version": "0.0.1",
   "description": "my first socket.io app",
   "dependencies": {

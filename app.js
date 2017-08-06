@@ -4,9 +4,14 @@ var app = require('express')();
 var Logger = require('le_node');
 var http = require('http');
 var port = process.env.PORT || 3000;
-log('attempting to use port:' + port)
 var logger = new Logger({  token:'f7347545-b7ff-4682-894f-7473dac2c18c'});
+var log = function(message)
+{
+  console.log(message);
+  logger.info(message);
+}
 
+log('attempting to use port:' + port);
 //var privateKey  = fs.readFileSync(__dirname + '/cert/server-key.pem', 'utf8');
 //var certificate = fs.readFileSync(__dirname + '/cert/server-cert.pem', 'utf8');
 //var credentials = {key: privateKey, cert: certificate};
@@ -60,8 +65,3 @@ httpServer.listen(port,function(){
   log('listening on Http *:' + port)
 })
 
-var log = function(message)
-{
-  console.log(message);
-  logger.info(message);
-}

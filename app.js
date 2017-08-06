@@ -3,7 +3,8 @@ var app = require('express')();
 //var https = require('https');
 var Logger = require('le_node');
 var http = require('http');
-
+var port = process.env.PORT || 3000;
+logger.log('attempting to use port:' + port)
 var logger = new Logger({  token:'f7347545-b7ff-4682-894f-7473dac2c18c'});
 
 //var privateKey  = fs.readFileSync(__dirname + '/cert/server-key.pem', 'utf8');
@@ -55,8 +56,8 @@ io.on('connection', function(socket){
 //  log('listening on Https *:44320')
 //})
 
-httpServer.listen(8080,function(){
-  log('listening on Http *:8080')
+httpServer.listen(port,function(){
+  log('listening on Http *:' + port)
 })
 
 var log = function(message)

@@ -55,7 +55,7 @@ io.on('connection', function(socket){
 //  log('listening on Https *:44320')
 //})
 
-httpsServer.listen(80,function(){
+httpServer.listen(80,function(){
   log('listening on Http *:80')
 })
 

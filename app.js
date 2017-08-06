@@ -18,7 +18,7 @@ app.get('/', function(req, res){
   res.render('index', {model});
 });
 
-io.set('origins',config.socketAllowedOriginals);
+io.set('origins',config.socketAllowedOrigins);
 io.on('connection', function(socket){
   
   logger.log('a user connected');

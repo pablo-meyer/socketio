@@ -1,10 +1,10 @@
 {
   "name": "socket-chat-example",
   "engines": {
-    "node": ">=6.11.2" // intentionally so big version number
+    "node": ">=6.11.2"
   },
   "version": "0.0.1",
-  "description": "my first socket.io app",
+  "description": "PSI Socket App",
   "dependencies": {
     "ejs": "^2.5.7",
     "debug": "^2.6.8",

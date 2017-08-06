@@ -4,7 +4,7 @@ var app = require('express')();
 var Logger = require('le_node');
 var http = require('http');
 var port = process.env.PORT || 3000;
-logger.log('attempting to use port:' + port)
+log('attempting to use port:' + port)
 var logger = new Logger({  token:'f7347545-b7ff-4682-894f-7473dac2c18c'});
 
 //var privateKey  = fs.readFileSync(__dirname + '/cert/server-key.pem', 'utf8');

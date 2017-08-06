@@ -1,7 +1,7 @@
 {
   "name": "socket-chat-example",
   "engines": {
-    "node": "6.11.2"
+    "node": "6.11.1"
   },
   "version": "0.0.1",
   "description": "PSI Socket App",

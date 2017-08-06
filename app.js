@@ -15,7 +15,7 @@ var io = require('socket.io')(httpServer);
 
 app.get('/', function(req, res){
   var model =  { socketUrl:config.socketUrl,secureSocket: config.secureSocket };
-  res.render('index', {model });
+  res.render('index', {model});
 });
 
 io.set('origins',config.socketAllowedOriginals);

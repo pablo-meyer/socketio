@@ -23,7 +23,9 @@
     <script>
   $(function () {
     var room, username;
-    var socket =io.connect('wss://localhost:44320', { secure: true,transports: ['websocket']});
+    var socketUrl = '<%=model.socketUrl %>';
+    var secureSocket = <%= model.secureSocket %>;
+    var socket =io.connect(socketUrl,{ secure: secureSocket,transports: ['websocket']});
     username = prompt("", "Enter your nick name");
     room = prompt("", "Enter room");
     $('form').submit(function(){

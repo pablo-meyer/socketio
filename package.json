@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "description": "my first socket.io app",
   "dependencies": {
+    "ejs": "^2.5.7",
     "debug": "^2.6.8",
     "jquery": "^3.2.1",
     "le_node": "^1.7.1",

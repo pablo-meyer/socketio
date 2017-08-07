@@ -3,6 +3,7 @@ var app = require('express')();
 var http = require('http');
 var logger = require('./services/logger');
 var config = require('./config/config');
+var controllers = require('./controllers');
 
 var port = process.env.PORT || 3000;
 
@@ -12,11 +13,7 @@ app.set('view engine', 'html');
 var httpServer = http.createServer(app);
 
 var io = require('socket.io')(httpServer);
-
-app.get('/', function(req, res){
-  var model =  { socketUrl:config.socketUrl,secureSocket: config.secureSocket };
-  res.render('index', {model});
-});
+controllers.init(app);
 
 io.set('origins',config.socketAllowedOrigins);
 io.on('connection', function(socket){

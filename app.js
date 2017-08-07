@@ -4,7 +4,7 @@ var http = require('http');
 var logger = require('./services/logger');
 var config = require('./config/config');
 
-var port = process.env.PORT;
+var port = process.env.PORT || 3000;
 
 app.engine('html', require('ejs').renderFile);
 app.set('view engine', 'html');

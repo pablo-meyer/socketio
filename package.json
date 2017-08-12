@@ -10,7 +10,8 @@
     "debug": "^2.6.8",
     "jquery": "^3.2.1",
     "le_node": "^1.7.1",
-    "socket.io": "^2.0.3"
+    "socket.io": "^2.0.3",
+    "twilio": "^3.0.0"
   },
   "scripts": {
         "start": "node app.js"

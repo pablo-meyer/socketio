@@ -30,7 +30,7 @@
     }
 
     form button {
-      width: 19%;
+      width: 12%;
       background: rgb(130, 224, 255);
       border: none;
       padding: 10px;
@@ -57,7 +57,10 @@
   <div id="remote-media"></div>
   <ul id="messages"></ul>
   <form action="">
-    <input id="m" autocomplete="off" /><button type="submit">Send</button><button type="button" onclick="shareWebCam();">Share WebCam</button>
+    <input id="m" autocomplete="off" />
+    <button type="submit">Send</button>
+    <button type="button" onclick="shareWebCam();">Share WebCam</button>
+    <button type="button" onclick="shareDesktop();">Share Desktop</button>
   </form>
   <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
@@ -65,15 +68,16 @@
   <script>
     var room, roomName, username, socket;
     const Video = Twilio.Video;
+    var extension = chrome.runtime.connect('dkbjhjljfaagngbdhomnlcheiiangfle');
+    var webCamTrack = { audio: true, video: { width: 640 } };
     $(function () {
-
-      var webCamTrack = { audio: true, video: { width: 640 } };
       var socketUrl = '<%=model.socketUrl %>';
       var secureSocket = <%= model.secureSocket %>;
       socket = io.connect(socketUrl, { secure: secureSocket, transports: ['websocket'] });
       username = prompt("", "Enter your nick name");
       roomName = prompt("", "Enter room");
       bindControls();
+      bindExtensionEvents();
       bindSocketEvents();
     });
 
@@ -90,6 +94,30 @@
         return false;
       });
     };
+    bindExtensionEvents = function () {
+      extension.onMessage.addListener(function (response) {
+        navigator.webkitGetUserMedia({
+          audio: false,
+          video: {
+            mandatory: {
+              chromeMediaSource: 'desktop',
+              chromeMediaSourceId: response.desktopId,
+              minWidth: 640,
+              maxWidth: 640,
+              minHeight: 480,
+              maxHeight: 480,
+              maxFrameRate: 1
+            },
+            optional: []
+          }
+        }, function (stream) {
+          room.localParticipant.addTracks(new LocalVideoTrack(stream.getVideoTracks()[0]));          
+        }, function (e) {
+          addMessage('system','Error while adding desktop: ' + err)
+        });
+      });
+
+    }
     var bindSocketEvents = function () {
       socket.on('chat message', function (msg) {
         addMessage(msg.username, msg.message);
@@ -136,9 +164,13 @@
       bindRoomEvents();
     }
     var shareWebCam = function () {
-      Video.createLocalTracks({ audio: true,video: { width: 640 } }).then(function (localTrack) {
+      Video.createLocalTracks(webCamTrack).then(function (localTrack) {
         room.localParticipant.addTracks(localTrack);
       });
+    }
+
+    var shareDesktop = function () {
+      extension.postMessage({ source: "queryForDesktopId" });
     }
 
     var attachTracks = function (tracks, container) {

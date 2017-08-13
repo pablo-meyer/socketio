@@ -1,3 +1,4 @@
+"use strict";
 var config = require('../config/config');
 var logger = require('../services/logger');
 var AccessToken = require('twilio').jwt.AccessToken;
@@ -30,10 +31,7 @@ var controllers =
         token.addGrant(grant);
 
         // Serialize the token to a JWT string and include it in a JSON response.
-        response.send({
-          identity: identity,
-          token: token.toJwt()
-        });
+        response.send({token: token.toJwt()});
       });
     }
   }

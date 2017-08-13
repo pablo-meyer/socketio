@@ -1,48 +1,172 @@
 <!doctype html>
 <html>
-  <head>
-    <title>Psi Chat</title>
-    <style>
-      * { margin: 0; padding: 0; box-sizing: border-box; }
-      body { font: 13px Helvetica, Arial; }
-      form { background: #000; padding: 3px; position: fixed; bottom: 0; width: 100%; }
-      form input { border: 0; padding: 10px; width: 90%; margin-right: .5%; }
-      form button { width: 9%; background: rgb(130, 224, 255); border: none; padding: 10px; }
-      #messages { list-style-type: none; margin: 0; padding: 0; }
-      #messages li { padding: 5px 10px; }
-      #messages li:nth-child(odd) { background: #eee; }
-    </style>
-  </head>
-  <body>
-    <ul id="messages"></ul>
-    <form action="">
-      <input id="m" autocomplete="off" /><button>Send</button>
-    </form>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
-    <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
-    <script>
-  $(function () {
-    var room, username;
-    var socketUrl = '<%=model.socketUrl %>';
-    var secureSocket = <%= model.secureSocket %>;
-    var socket =io.connect(socketUrl,{ secure: secureSocket,transports: ['websocket']});
-    username = prompt("", "Enter your nick name");
-    room = prompt("", "Enter room");
-    $('form').submit(function(){
-      
-      msg=$('#m').val();
-      socket.emit('chat message',msg );
-      $('#messages').append($('<li>').html('<strong>' +username+ ': </strong>' + msg));
-      $('#m').val('');
-      return false;
+
+<head>
+  <title>Psi Chat</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font: 13px Helvetica, Arial;
+    }
+
+    form {
+      background: #000;
+      padding: 3px;
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+    }
+
+    form input {
+      border: 0;
+      padding: 10px;
+      width: 60%;
+      margin-right: .5%;
+    }
+
+    form button {
+      width: 19%;
+      background: rgb(130, 224, 255);
+      border: none;
+      padding: 10px;
+      margin-right: .5%;
+    }
+
+    #messages {
+      list-style-type: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    #messages li {
+      padding: 5px 10px;
+    }
+
+    #messages li:nth-child(odd) {
+      background: #eee;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="remote-media"></div>
+  <ul id="messages"></ul>
+  <form action="">
+    <input id="m" autocomplete="off" /><button type="submit">Send</button><button type="button" onclick="shareWebCam();">Share WebCam</button>
+  </form>
+  <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
+  <script src="https://media.twiliocdn.com/sdk/js/video/v1/twilio-video.min.js"></script>
+  <script>
+    var room, roomName, username, socket;
+    const Video = Twilio.Video;
+    $(function () {
+
+      var webCamTrack = { audio: true, video: { width: 640 } };
+      var socketUrl = '<%=model.socketUrl %>';
+      var secureSocket = <%= model.secureSocket %>;
+      socket = io.connect(socketUrl, { secure: secureSocket, transports: ['websocket'] });
+      username = prompt("", "Enter your nick name");
+      roomName = prompt("", "Enter room");
+      bindControls();
+      bindSocketEvents();
     });
-    socket.on('chat message', function(msg){
+
+    var bindControls = function () {
+      $('form').submit(function () {
+
+        msg = $('#m').val();
+        socket.emit('chat message', msg);
+        $('#messages').append($('<li>').html('<strong>' + username + ': </strong>' + msg));
+        $('#m').val('');
+        return false;
+      });
+    };
+    var bindSocketEvents = function () {
+      socket.on('chat message', function (msg) {
         $('#messages').append($('<li>').html('<strong>' + msg.username + ': </strong>' + msg.message));
-    });
-    socket.on('connect', function() {
-        socket.emit('joinroom', {room:room,username:username});
-    });
-  });
-</script>
-  </body>
+      });
+      socket.on('connect', function () {
+        joinRoom();
+      });
+    };
+    var bindRoomEvents = function () {
+      room.participants.forEach(function (participant) {
+        $('#messages').append($('<li>').html("Already in Room: '" + participant.identity));
+        var previewContainer = document.getElementById('remote-media');
+        attachParticipantTracks(participant, previewContainer);
+      });
+
+      // When a Participant adds a Track, attach it to the DOM.
+      room.on('trackAdded', function (track, participant) {
+        var previewContainer = document.getElementById('remote-media');
+        attachTracks([track], previewContainer);
+      });
+
+      // When a Participant removes a Track, detach it from the DOM.
+      room.on('trackRemoved', function (track, participant) {
+        log(participant.identity + " removed track: " + track.kind);
+        detachTracks([track]);
+      });
+
+      // When a Participant leaves the Room, detach its Tracks.
+      room.on('participantDisconnected', function (participant) {
+        log("Participant '" + participant.identity + "' left the room");
+        detachParticipantTracks(participant);
+      });
+    }
+    var joinRoom = function () {
+      socket.emit('joinroom', { room: roomName, username: username });
+      var getToken =
+        $.get(`/token/${roomName}/${username}`).then(function (data) {
+          Video.connect(data.token, { name: roomName, tracks: [] }).then(roomJoined, function (error) {
+            log('Could not connect to Twilio: ' + error.message);
+          });
+        }, function () {
+          alert("$.get failed!");
+        }
+        );
+    }
+    var roomJoined = function (joinedRoom) {
+      room = joinedRoom;
+      console.log('video room joined');
+      // Attach the Tracks of the Room's Participants.
+      bindRoomEvents();
+    }
+    var shareWebCam = function () {
+      Video.createLocalVideoTrack({ audio: true }).then(function (localTrack) {
+        room.localParticipant.addTrack(localTrack);
+      });
+    }
+
+    var attachTracks = function (tracks, container) {
+      tracks.forEach(function (track) {
+        container.appendChild(track.attach());
+      });
+    }
+
+    // Leave Room.
+    var leaveRoomIfJoined = function () {
+      if (room) {
+        room.disconnect();
+      }
+    }
+
+    // Attach the Participant's Tracks to the DOM.
+    var attachParticipantTracks = function (participant, container) {
+      var tracks = Array.from(participant.tracks.values());
+      attachTracks(tracks, container);
+    }
+
+    // When we are about to transition away from this page, disconnect
+    // from the room, if joined.
+    window.addEventListener('beforeunload', leaveRoomIfJoined);
+  </script>
+</body>
+
 </html>

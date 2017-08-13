@@ -136,11 +136,8 @@
       bindRoomEvents();
     }
     var shareWebCam = function () {
-      Video.createLocalVideoTrack().then(function (localTrack) {
-        room.localParticipant.addTrack(localTrack);
-      });
-      Video.createLocalAudioTrack().then(function (localTrack) {
-        room.localParticipant.addTrack(localTrack);
+      Video.createLocalTracks({ audio: true,video: { width: 640 } }).then(function (localTrack) {
+        room.localParticipant.addTracks(localTrack);
       });
     }
 

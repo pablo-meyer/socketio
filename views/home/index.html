@@ -77,6 +77,9 @@
       bindSocketEvents();
     });
 
+    var addMessage = function (from, message) {
+      $('#messages').append($('<li>').html('<strong>' + from + ': </strong>' + message));
+    }
     var bindControls = function () {
       $('form').submit(function () {
 
@@ -89,7 +92,7 @@
     };
     var bindSocketEvents = function () {
       socket.on('chat message', function (msg) {
-        $('#messages').append($('<li>').html('<strong>' + msg.username + ': </strong>' + msg.message));
+        addMessage(msg.username, msg.message);
       });
       socket.on('connect', function () {
         joinRoom();
@@ -97,26 +100,24 @@
     };
     var bindRoomEvents = function () {
       room.participants.forEach(function (participant) {
-        $('#messages').append($('<li>').html("Already in Room: '" + participant.identity));
-        var previewContainer = document.getElementById('remote-media');
-        attachParticipantTracks(participant, previewContainer);
+        addMessage('system', "Already in Room: " + participant.identity);
+        attachParticipantTracks(participant, document.getElementById('remote-media'));
       });
 
       // When a Participant adds a Track, attach it to the DOM.
       room.on('trackAdded', function (track, participant) {
-        var previewContainer = document.getElementById('remote-media');
-        attachTracks([track], previewContainer);
+        attachTracks([track], document.getElementById('remote-media'));
       });
 
       // When a Participant removes a Track, detach it from the DOM.
       room.on('trackRemoved', function (track, participant) {
-        log(participant.identity + " removed track: " + track.kind);
+        addMessage('system', participant.identity + " removed track: " + track.kind);
         detachTracks([track]);
       });
 
       // When a Participant leaves the Room, detach its Tracks.
       room.on('participantDisconnected', function (participant) {
-        log("Participant '" + participant.identity + "' left the room");
+        addMessage('system', "Participant '" + participant.identity + " left the room");
         detachParticipantTracks(participant);
       });
     }
@@ -124,9 +125,7 @@
       socket.emit('joinroom', { room: roomName, username: username });
       var getToken =
         $.get(`/token/${roomName}/${username}`).then(function (data) {
-          Video.connect(data.token, { name: roomName, tracks: [] }).then(roomJoined, function (error) {
-            log('Could not connect to Twilio: ' + error.message);
-          });
+          Video.connect(data.token, { name: roomName, tracks: [] }).then(roomJoined, function (error) { $('#messages').append($('<li>').html('Could not connect to Twilio: ' + error.message)); });
         }, function () {
           alert("$.get failed!");
         }
@@ -134,12 +133,13 @@
     }
     var roomJoined = function (joinedRoom) {
       room = joinedRoom;
-      console.log('video room joined');
-      // Attach the Tracks of the Room's Participants.
       bindRoomEvents();
     }
     var shareWebCam = function () {
-      Video.createLocalVideoTrack({ audio: true }).then(function (localTrack) {
+      Video.createLocalVideoTrack().then(function (localTrack) {
+        room.localParticipant.addTrack(localTrack);
+      });
+      Video.createLocalAudioTrack().then(function (localTrack) {
         room.localParticipant.addTrack(localTrack);
       });
     }
@@ -147,6 +147,15 @@
     var attachTracks = function (tracks, container) {
       tracks.forEach(function (track) {
         container.appendChild(track.attach());
+      });
+    }
+
+    // Detach the Tracks from the DOM.
+    function detachTracks(tracks) {
+      tracks.forEach(function (track) {
+        track.detach().forEach(function (detachedElement) {
+          detachedElement.remove();
+        });
       });
     }
 
@@ -161,6 +170,11 @@
     var attachParticipantTracks = function (participant, container) {
       var tracks = Array.from(participant.tracks.values());
       attachTracks(tracks, container);
+    }
+
+    var detachParticipantTracks = function (participant) {
+      var tracks = Array.from(participant.tracks.values());
+      detachTracks(tracks);
     }
 
     // When we are about to transition away from this page, disconnect

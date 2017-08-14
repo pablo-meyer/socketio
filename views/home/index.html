@@ -65,11 +65,14 @@
   <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
   <script src="https://media.twiliocdn.com/sdk/js/video/v1/twilio-video.min.js"></script>
+  <script src="https://cdn.WebRTC-Experiment.com/getScreenId.js"></script>
+
   <script>
     var room, roomName, username, socket;
     const Video = Twilio.Video;
     var extension = chrome.runtime.connect('dkbjhjljfaagngbdhomnlcheiiangfle');
     var webCamTrack = { audio: true, video: { width: 640 } };
+    var screenSharingTrack = { audio: false, video: { mandatory: { chromeMediaSource: 'desktop', chromeMediaSourceId: 'temp', minWidth: 640, maxWidth: 640, minHeight: 480, maxHeight: 480, maxFrameRate: 1 }, optional: [] } }
     $(function () {
       var socketUrl = '<%=model.socketUrl %>';
       var secureSocket = <%= model.secureSocket %>;
@@ -96,24 +99,12 @@
     };
     bindExtensionEvents = function () {
       extension.onMessage.addListener(function (response) {
-        navigator.webkitGetUserMedia({
-          audio: false,
-          video: {
-            mandatory: {
-              chromeMediaSource: 'desktop',
-              chromeMediaSourceId: response.desktopId,
-              minWidth: 640,
-              maxWidth: 640,
-              minHeight: 480,
-              maxHeight: 480,
-              maxFrameRate: 1
-            },
-            optional: []
-          }
-        }, function (stream) {
-          room.localParticipant.addTracks(new LocalVideoTrack(stream.getVideoTracks()[0]));          
+        var settings = screenSharingTrack;
+        settings.video.mandatory.chromeMediaSourceId = response.desktopId;
+        navigator.webkitGetUserMedia(settings, function (stream) {
+          room.localParticipant.addTracks(new LocalVideoTrack(stream.getVideoTracks()[0]));
         }, function (e) {
-          addMessage('system','Error while adding desktop: ' + err)
+          addMessage('system', 'Error while adding desktop: ' + err)
         });
       });
 
@@ -170,7 +161,25 @@
     }
 
     var shareDesktop = function () {
-      extension.postMessage({ source: "queryForDesktopId" });
+      //this will work with ie extension
+      //extension.postMessage({ source: "queryForDesktopId" });
+
+      getScreenId(function (error, sourceId, screen_constraints) {
+        console.log(error);
+        console.log(sourceId);
+        console.log(screen_constraints);
+
+        var settings = screenSharingTrack;
+        settings.video.mandatory.chromeMediaSourceId = sourceId;
+        Video.createLocalTracks(settings).then(function (localTrack) {
+        room.localParticipant.addTracks(localTrack);
+      });
+      //  navigator.webkitGetUserMedia(settings, function (stream) {
+      //    room.localParticipant.addTracks(new LocalVideoTrack(stream.getVideoTracks()[0]));
+      //  }, function (e) {
+      //    addMessage('system', 'Error while adding desktop: ' + err)
+      //  });
+      });
     }
 
     var attachTracks = function (tracks, container) {

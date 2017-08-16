@@ -136,7 +136,7 @@
 
       // When a Participant leaves the Room, detach its Tracks.
       room.on('participantDisconnected', function (participant) {
-        addMessage('system', "Participant '" + participant.identity + " left the room");
+        addMessage('system', "Participant " + participant.identity + " left the room");
         detachParticipantTracks(participant);
       });
     }

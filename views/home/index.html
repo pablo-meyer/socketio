@@ -30,7 +30,7 @@
     }
 
     form button {
-      width: 12%;
+      width: 18%;
       background: rgb(130, 224, 255);
       border: none;
       padding: 10px;
@@ -59,18 +59,23 @@
   <form action="">
     <input id="m" autocomplete="off" />
     <button type="submit">Send</button>
-    <button type="button" onclick="shareWebCam();">Share WebCam</button>
-    <button type="button" onclick="shareDesktop();">Share Desktop</button>
+    <button type="button" onclick="share();">Share</button>
   </form>
   <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
   <script src="https://media.twiliocdn.com/sdk/js/video/v1/twilio-video.min.js"></script>
   <script src="https://cdn.WebRTC-Experiment.com/getScreenId.js"></script>
+  <script src="https://rationalcoding.github.io/video-stream-merger/dist/video-stream-merger.js"></script>
+  <script src="https://rationalcoding.github.io/video-stream-merger/demo/getusermedia.js"></script>
+
 
   <script>
     var room, roomName, username, socket;
+    var streamCount =1;
     const Video = Twilio.Video;
     var extension = chrome.runtime.connect('dkbjhjljfaagngbdhomnlcheiiangfle');
+    var merger = new VideoStreamMerger({ width: 1200, height: 900});
+   
     var webCamTrack = { audio: true, video: { width: 640 } };
     var screenSharingTrack = { audio: false, video: { mandatory: { chromeMediaSource: 'desktop', chromeMediaSourceId: 'temp', minWidth: 640, maxWidth: 640, minHeight: 480, maxHeight: 480, maxFrameRate: 1 }, optional: [] } }
     $(function () {
@@ -154,33 +159,56 @@
       room = joinedRoom;
       bindRoomEvents();
     }
-    var shareWebCam = function () {
-      Video.createLocalTracks(webCamTrack).then(function (localTrack) {
-        room.localParticipant.addTracks(localTrack);
-      });
+    
+    var attacheWebCamToContext = function(){
+getusermedia(webCamTrack, function (err, track) {
+      merger.addStream(track, { 
+            mute: false,
+            draw: function (ctx, frame, done) {
+              var unit = merger.width / streamCount;
+              ctx.drawImage(frame, unit*(streamCount-1), 0, unit, merger.height/streamCount);              
+              done()
+            }
+          });  
+    });
+    streamCount++;
     }
 
-    var shareDesktop = function () {
-      //this will work with ie extension
-      //extension.postMessage({ source: "queryForDesktopId" });
-
-      getScreenId(function (error, sourceId, screen_constraints) {
+var attachScreenSharingToContext = function(){
+   getScreenId(function (error, sourceId, screen_constraints) {
         console.log(error);
         console.log(sourceId);
         console.log(screen_constraints);
+        screenSharingTrack.video.mandatory.chromeMediaSourceId = sourceId;
+ getusermedia(screenSharingTrack, function (err, track) {
+      merger.addStream(track, { 
+            mute: true,
+            draw: function (ctx, frame, done) {
+              var unit = merger.width / streamCount;
+              ctx.drawImage(frame, unit*(streamCount-1), 0, unit, merger.height/streamCount);              
+              done()
+            }
+          });  
+    });
 
-        var settings = screenSharingTrack;
-        settings.video.mandatory.chromeMediaSourceId = sourceId;
-        Video.createLocalTracks(settings).then(function (localTrack) {
-        room.localParticipant.addTracks(localTrack);
+
+        Video.createLocalTracks(merger.result).then(function (localTrack) {
+          room.localParticipant.addTracks(localTrack);
       });
-      //  navigator.webkitGetUserMedia(settings, function (stream) {
-      //    room.localParticipant.addTracks(new LocalVideoTrack(stream.getVideoTracks()[0]));
-      //  }, function (e) {
-      //    addMessage('system', 'Error while adding desktop: ' + err)
-      //  });
+         
       });
-    }
+}
+
+var share = function(){
+    merger.start();
+   
+//attacheWebCamToContext();
+    attachScreenSharingToContext();
+
+
+   
+};
+
 
     var attachTracks = function (tracks, container) {
       tracks.forEach(function (track) {

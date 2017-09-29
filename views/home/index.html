@@ -71,11 +71,11 @@
 
   <script>
     var room, roomName, username, socket;
-    var streamCount =1;
+    var streamCount = 1;
     const Video = Twilio.Video;
     var extension = chrome.runtime.connect('dkbjhjljfaagngbdhomnlcheiiangfle');
-    var merger = new VideoStreamMerger({ width: 1200, height: 900});
-   
+    var merger = new VideoStreamMerger({ width: 1200, height: 900 });
+
     var webCamTrack = { audio: true, video: { width: 640 } };
     var screenSharingTrack = { audio: false, video: { mandatory: { chromeMediaSource: 'desktop', chromeMediaSourceId: 'temp', minWidth: 640, maxWidth: 640, minHeight: 480, maxHeight: 480, maxFrameRate: 1 }, optional: [] } }
     $(function () {
@@ -159,55 +159,51 @@
       room = joinedRoom;
       bindRoomEvents();
     }
-    
-    var attacheWebCamToContext = function(){
-getusermedia(webCamTrack, function (err, track) {
-      merger.addStream(track, { 
-            mute: false,
-            draw: function (ctx, frame, done) {
-              var unit = merger.width / streamCount;
-              ctx.drawImage(frame, unit*(streamCount-1), 0, unit, merger.height/streamCount);              
-              done()
-            }
-          });  
-    });
-    streamCount++;
+
+    var attacheWebCamToContext = function () {
+      getusermedia(webCamTrack, function (err, track) {
+        merger.addStream(track, {
+          mute: false,
+          draw: function (ctx, frame, done) {
+            var unit = merger.width / streamCount;
+            ctx.drawImage(frame, unit * (streamCount - 1), 0, unit, merger.height / streamCount);
+            done()
+          }
+        });
+      });
+      streamCount++;
     }
 
-var attachScreenSharingToContext = function(){
-   getScreenId(function (error, sourceId, screen_constraints) {
+    var attachScreenSharingToContext = function () {
+      getScreenId(function (error, sourceId, screen_constraints) {
         console.log(error);
         console.log(sourceId);
         console.log(screen_constraints);
         screenSharingTrack.video.mandatory.chromeMediaSourceId = sourceId;
- getusermedia(screenSharingTrack, function (err, track) {
-      merger.addStream(track, { 
+        getusermedia(screenSharingTrack, function (err, track) {
+          merger.addStream(track, {
             mute: true,
             draw: function (ctx, frame, done) {
               var unit = merger.width / streamCount;
-              ctx.drawImage(frame, unit*(streamCount-1), 0, unit, merger.height/streamCount);              
+              ctx.drawImage(frame, unit * (streamCount - 1), 0, unit, merger.height / streamCount);
               done()
             }
-          });  
-    });
+          });
+        });
 
 
         Video.createLocalTracks(merger.result).then(function (localTrack) {
           room.localParticipant.addTracks(localTrack);
+        });
+
       });
-         
-      });
-}
+    }
 
-var share = function(){
-    merger.start();
-   
-//attacheWebCamToContext();
-    attachScreenSharingToContext();
-
-
-   
-};
+    var share = function () {
+      merger.start();
+      //attacheWebCamToContext();
+      attachScreenSharingToContext();
+    };
 
 
     var attachTracks = function (tracks, container) {

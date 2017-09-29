@@ -180,7 +180,38 @@
         console.log(sourceId);
         console.log(screen_constraints);
         screenSharingTrack.video.mandatory.chromeMediaSourceId = sourceId;
-        getusermedia(screenSharingTrack, function (err, track) {
+        /*         navigator.webkitGetUserMedia(screenSharingTrack, function (track) {
+                  merger.addStream(track, {
+                    mute: true,
+                    draw: function (ctx, frame, done) {
+                      var unit = merger.width / streamCount;
+                      ctx.drawImage(frame, unit * (streamCount - 1), 0, unit, merger.height / streamCount);
+                      done()
+                    }
+                  });
+                },
+              function(e)
+            {
+              alert(e);
+            }); */
+
+
+
+        navigator.webkitGetUserMedia({
+          audio: false,
+          video: {
+            mandatory: {
+              chromeMediaSource: 'desktop',
+              chromeMediaSourceId: sourceId,
+              minWidth: 640,
+              maxWidth: 640,
+              minHeight: 480,
+              maxHeight: 480,
+              maxFrameRate: 1
+            },
+            optional: []
+          }
+        }, function (track) {
           merger.addStream(track, {
             mute: true,
             draw: function (ctx, frame, done) {
@@ -189,11 +220,12 @@
               done()
             }
           });
-        });
+          Video.createLocalTracks(merger.result).then(function (localTrack) {
+            room.localParticipant.addTracks(localTrack);
+          });
 
-
-        Video.createLocalTracks(merger.result).then(function (localTrack) {
-          room.localParticipant.addTracks(localTrack);
+        }, function (e) {
+          logging.error(dataViewModel.ReservationId() + ": " + e);
         });
 
       });

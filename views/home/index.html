@@ -54,7 +54,6 @@
 </head>
 
 <body>
-  <video muted controls autoplay id="video"></video>
   <div id="remote-media"></div>
   <ul id="messages"></ul>
   <form action="">
@@ -186,8 +185,6 @@
           merger.start();
           var localTrack = merger.result.getVideoTracks().map(lt => new Twilio.Video.LocalVideoTrack(lt));
           room.localParticipant.addTracks(localTrack);
-          $("#video")[0].srcObject = merger.result;
-
         }, function (e) {
           console.log(e);
         });

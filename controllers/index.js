@@ -31,10 +31,20 @@ var controllers =
 
         });
       });
+      //http://localhost:3000/room/{roomName}}
       app.get('/room/:context', function (request, response) {
         var roomName = request.params.context;
         rooms.getRoomInfo(roomName).then((room) => {           
           return response.send({ room: util.inspect(room) });
+        });
+      });
+
+      //http://localhost:3000/rooms/completed
+      //http://localhost:3000/rooms/in-progress
+       app.get('/rooms/:status', function (request, response) {
+        var status = request.params.status;
+        rooms.getRooms(status).then((rooms) => {           
+          return response.send({ rooms: rooms.map((item) => {return { sid: item.sid, status: item.status, enableTurn: item.enableTurn, uniqueName: item.uniqueName, duration: item.duration };}) });
         });
       });
     }

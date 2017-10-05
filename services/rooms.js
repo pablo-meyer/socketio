@@ -19,13 +19,23 @@ module.exports = {
             });
         });
     },
-    getRoomInfo(roomName) {
+    getRoomInfo: function (roomName) {
         return new Promise((resolve, reject) => {
             var client = new Twilio(config.twillio.apiKey, config.twillio.apiSecret, { accountSid: config.twillio.accountId });
             client.video.rooms.list({
                 uniqueName: roomName
             }).then((room) => {
-                logger.log(room);
+
+                return resolve(room);
+            });
+        });
+    },
+    getRooms: function (status) {
+        return new Promise((resolve, reject) => {
+            var client = new Twilio(config.twillio.apiKey, config.twillio.apiSecret, { accountSid: config.twillio.accountId });
+            client.video.rooms.list({
+                status: status
+            }).then((room) => {
                 return resolve(room);
             });
         });

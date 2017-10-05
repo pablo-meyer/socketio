@@ -19,6 +19,17 @@ module.exports = {
             });
         });
     },
+    getRoomInfo(roomName) {
+        return new Promise((resolve, reject) => {
+            var client = new Twilio(config.twillio.apiKey, config.twillio.apiSecret, { accountSid: config.twillio.accountId });
+            client.video.rooms.list({
+                uniqueName: roomName
+            }).then((room) => {
+                logger.log(room);
+                return resolve(room);
+            });
+        });
+    },
     getToken: function (identity, roomName) {
         logger.log(`Getting twillio token for UserName: ${identity} Context:${roomName}`);
         token = new AccessToken(

@@ -54,6 +54,13 @@ var controllers =
           return response.send({ rooms: recordings.map((item) => {return { sid: item.sid, status: item.status, type: item.type, size: item.size, duration: item.duration, containerFormat: item.containerFormat };}) });
         });
       });
+      app.get('/media/:roomId/:recordingId', function(request, response){
+        var recordingId = request.params.recordingId;
+        var roomId = request.params.roomId;
+        var media = rooms.getRecordingMedia(recordingId).then((mediaLocation) => {
+          return response.send({ mediaLocation: mediaLocation });
+        });        
+      });
     }
   }
 module.exports = controllers;

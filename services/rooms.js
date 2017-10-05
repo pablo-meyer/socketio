@@ -50,13 +50,19 @@ module.exports = {
             });
         });
     },
+    getRecordingMedia: function (recordingId) {
+        return new Promise((resolve, reject) => {
+            var client = new Twilio(config.twillio.apiKey, config.twillio.apiSecret, { accountSid: config.twillio.accountId });
+            var uri = `https://video.twilio.com/v1/Recordings/${recordingId}/Media`;
+            client.request({ method: "GET", uri: uri }).then((object) => {
+                var mediaLocation = JSON.parse(object.body).redirect_to;
+                return resolve(mediaLocation);
+            });
+        });
+    },
     getToken: function (identity, roomName) {
         logger.log(`Getting twillio token for UserName: ${identity} Context:${roomName}`);
-        token = new AccessToken(
-            config.twillio.accountId,
-            config.twillio.apiKey,
-            config.twillio.apiSecret
-        );
+        token = new AccessToken(config.twillio.accountId,config.twillio.apiKey,config.twillio.apiSecret);
         // Assign the generated identity to the token.
         token.identity = identity;
         var grant = new VideoGrant();

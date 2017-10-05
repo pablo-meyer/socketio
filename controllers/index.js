@@ -1,9 +1,8 @@
 "use strict";
 var config = require('../config/config');
 var logger = require('../services/logger');
-var AccessToken = require('twilio').jwt.AccessToken;
-var VideoGrant = AccessToken.VideoGrant;
-var Twilio = require('twilio');
+var rooms = require('../services/rooms');
+
 var controllers =
   {
     init: function (app) {
@@ -13,32 +12,24 @@ var controllers =
       });
       app.get('/token/:context/:userName', function (request, response) {
         var identity = request.params.userName
-        var context = request.params.context;
-        logger.log(`Getting twillio token for UserName: ${identity} Context:${context}`);
-        var token;
-
-        var client = new Twilio(config.twillio.apiKey, config.twillio.apiSecret, { accountSid: config.twillio.accountId });
-        client.video.rooms.create({
-          uniqueName: context,
-          type: 'group',
-          recordParticipantsOnConnect: 'true'
-        }).then((room) => {
-          console.log(room);
-          token = new AccessToken(
-            config.twillio.accountId,
-            config.twillio.apiKey,
-            config.twillio.apiSecret
-          );
-          // Assign the generated identity to the token.
-          token.identity = identity;
-          var grant = new VideoGrant();
-          token.addGrant(grant);
-          // Serialize the token to a JWT string and include it in a JSON response.
-          return response.send({ token: token.toJwt() });
-        }).catch((err) => {
-          console.log(err);
+        var roomName = request.params.context;
+        rooms.createRoom(roomName).then((roomId) => {
+          //we created the room, lets send the token
+          logger.log(`Room successfully created Name: ${roomName} Id: ${roomId}`);
+          return response.send({ token: rooms.getToken(identity, roomName) });
+        }).catch((err) => {          
+          if (err.code === 53113) {
+            //unable to create room as it already exists
+            logger.log('Unable to create room, it already exists');
+            return response.send({ token: rooms.getToken(identity, roomName) });
+          }
+          else
+            {
+              logger.log(err);
+              throw new Error(err.message);
+            }
+            
         });
-
       });
     }
   }

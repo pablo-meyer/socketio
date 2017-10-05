@@ -47,6 +47,13 @@ var controllers =
           return response.send({ rooms: rooms.map((item) => {return { sid: item.sid, status: item.status, enableTurn: item.enableTurn, uniqueName: item.uniqueName, duration: item.duration };}) });
         });
       });
+      //http://localhost:3000/recordings/RM791ac7c79fe2c75ac78d8b90437288da
+       app.get('/recordings/:roomId', function (request, response) {
+        var roomId = request.params.roomId;
+        rooms.getRecordings(roomId).then((recordings) => {      
+          return response.send({ rooms: recordings.map((item) => {return { sid: item.sid, status: item.status, type: item.type, size: item.size, duration: item.duration, containerFormat: item.containerFormat };}) });
+        });
+      });
     }
   }
 module.exports = controllers;

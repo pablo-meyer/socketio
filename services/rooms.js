@@ -35,8 +35,18 @@ module.exports = {
             var client = new Twilio(config.twillio.apiKey, config.twillio.apiSecret, { accountSid: config.twillio.accountId });
             client.video.rooms.list({
                 status: status
-            }).then((room) => {
-                return resolve(room);
+            }).then((rooms) => {
+                return resolve(rooms);
+            });
+        });
+    },
+    getRecordings: function (roomId) {
+        return new Promise((resolve, reject) => {
+            var client = new Twilio(config.twillio.apiKey, config.twillio.apiSecret, { accountSid: config.twillio.accountId });
+            client.video.recordings.list({
+                groupingSid: [roomId]
+            }).then((recordings) => {
+                return resolve(recordings);
             });
         });
     },
